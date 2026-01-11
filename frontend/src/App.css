@@ -7,8 +7,11 @@
 
 .app__header {
   margin-bottom: 32px;
-  display: grid;
-  gap: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-start;
+  justify-content: space-between;
 }
 
 .app__badge {
@@ -30,6 +33,39 @@
   color: #475569;
   margin: 0;
   max-width: 38rem;
+}
+
+.app__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.app__nav a {
+  text-decoration: none;
+  color: #475569;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: #f8fafc;
+}
+
+.app__nav a.active {
+  color: #1d4ed8;
+  border-color: #c7d2fe;
+  background: #eef2ff;
+}
+
+.app__content {
+  display: grid;
+  gap: 24px;
+}
+
+.page {
+  display: grid;
+  gap: 24px;
 }
 
 .app__card {
@@ -169,6 +205,13 @@ button.ghost {
   color: #1e293b;
   border: 1px solid #cbd5e1;
   box-shadow: none;
+}
+
+.ghost-link {
+  display: inline-block;
+  margin-top: 12px;
+  color: #1d4ed8;
+  font-weight: 600;
 }
 
 .status {
