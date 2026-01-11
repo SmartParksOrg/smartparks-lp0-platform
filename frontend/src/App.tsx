@@ -13,6 +13,25 @@ type LogFileResponse = {
   source_type: string
 }
 
+type DecoderSummary = {
+  id: string
+  name: string
+  kind: string
+  size_bytes: number
+  uploaded_at: string | null
+}
+
+type DecodeRow = {
+  status: string
+  devaddr: string | null
+  fcnt: number | null
+  fport: number | null
+  time: string | null
+  payload_hex: string | null
+  decoded_json: unknown | null
+  error: string | null
+}
+
 type GenerateRequest = {
   gateway_eui: string
   devaddr: string
@@ -39,6 +58,12 @@ const defaultForm: GenerateRequest = {
   filename: null,
 }
 
+const defaultDecodeForm = {
+  scan_token: '',
+  decoder_id: 'raw',
+  devaddrs: '',
+}
+
 function App() {
   const apiBase = import.meta.env.VITE_API_BASE ?? ''
   const [health, setHealth] = useState<HealthStatus | null>(null)
@@ -49,6 +74,12 @@ function App() {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [generated, setGenerated] = useState<LogFileResponse | null>(null)
+  const [decoders, setDecoders] = useState<DecoderSummary[]>([])
+  const [decodeForm, setDecodeForm] = useState(defaultDecodeForm)
+  const [decodeRows, setDecodeRows] = useState<DecodeRow[]>([])
+  const [decodeToken, setDecodeToken] = useState('')
+  const [decodeError, setDecodeError] = useState('')
+  const [decodeLoading, setDecodeLoading] = useState(false)
 
   const formattedSize = useMemo(() => {
     if (!generated) return ''
@@ -84,6 +115,28 @@ function App() {
 
     return () => controller.abort()
   }, [apiBase])
+
+  useEffect(() => {
+    if (!authToken) {
+      setDecoders([])
+      return
+    }
+    const controller = new AbortController()
+    fetch(`${apiBase}/api/v1/decoders`, {
+      signal: controller.signal,
+      headers: { Authorization: `Bearer ${authToken}` },
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(`Decoder list failed: ${response.status}`)
+        }
+        return response.json() as Promise<DecoderSummary[]>
+      })
+      .then((data) => setDecoders(data))
+      .catch(() => setDecoders([]))
+
+    return () => controller.abort()
+  }, [apiBase, authToken])
 
   const updateField = <K extends keyof GenerateRequest>(
     key: K,
@@ -150,6 +203,73 @@ function App() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Download failed'
       setSubmitError(message)
+    }
+  }
+
+  const handleDecodeSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setDecodeLoading(true)
+    setDecodeError('')
+    setDecodeRows([])
+    setDecodeToken('')
+
+    const devaddrs = decodeForm.devaddrs
+      .split(',')
+      .map((value) => value.trim())
+      .filter(Boolean)
+
+    try {
+      const response = await fetch(`${apiBase}/api/v1/decode`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+        },
+        body: JSON.stringify({
+          scan_token: decodeForm.scan_token || null,
+          decoder_id: decodeForm.decoder_id || 'raw',
+          devaddrs: devaddrs.length ? devaddrs : null,
+        }),
+      })
+
+      if (!response.ok) {
+        const message = await response.text()
+        throw new Error(message || `Decode failed: ${response.status}`)
+      }
+
+      const data = (await response.json()) as { token: string; rows: DecodeRow[] }
+      setDecodeToken(data.token)
+      setDecodeRows(data.rows)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Decode failed'
+      setDecodeError(message)
+    } finally {
+      setDecodeLoading(false)
+    }
+  }
+
+  const handleExport = async (format: 'csv' | 'json') => {
+    if (!decodeToken) return
+    setDecodeError('')
+    try {
+      const response = await fetch(`${apiBase}/api/v1/decode/${decodeToken}/export/${format}`, {
+        headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+      })
+      if (!response.ok) {
+        throw new Error(`Export failed: ${response.status}`)
+      }
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = `decode-results.${format}`
+      document.body.appendChild(anchor)
+      anchor.click()
+      anchor.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Export failed'
+      setDecodeError(message)
     }
   }
 
@@ -332,6 +452,111 @@ function App() {
                 Download JSONL
               </button>
             </div>
+          </div>
+        )}
+      </section>
+
+      <section className="app__card app__card--form">
+        <div className="card__header">
+          <div>
+            <h2>Decrypt &amp; Decode</h2>
+            <p>Use a scan token to decrypt uplinks and run a decoder.</p>
+          </div>
+          <div className="card__pill">Decode</div>
+        </div>
+
+        <form className="form" onSubmit={handleDecodeSubmit}>
+          <div className="form__grid">
+            <label>
+              Scan token
+              <input
+                value={decodeForm.scan_token}
+                onChange={(event) =>
+                  setDecodeForm((prev) => ({ ...prev, scan_token: event.target.value }))
+                }
+                placeholder="Paste scan token"
+                required
+              />
+            </label>
+            <label>
+              Decoder
+              <select
+                value={decodeForm.decoder_id}
+                onChange={(event) =>
+                  setDecodeForm((prev) => ({ ...prev, decoder_id: event.target.value }))
+                }
+              >
+                <option value="raw">Raw payload only</option>
+                {decoders.map((decoder) => (
+                  <option key={decoder.id} value={decoder.id}>
+                    {decoder.name} ({decoder.kind})
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              DevAddrs (optional)
+              <input
+                value={decodeForm.devaddrs}
+                onChange={(event) =>
+                  setDecodeForm((prev) => ({ ...prev, devaddrs: event.target.value }))
+                }
+                placeholder="26011BDA,01020304"
+              />
+            </label>
+          </div>
+
+          <div className="form__actions">
+            <button type="submit" disabled={decodeLoading}>
+              {decodeLoading ? 'Decoding…' : 'Run decode'}
+            </button>
+            <button
+              type="button"
+              className="ghost"
+              disabled={!decodeToken}
+              onClick={() => handleExport('csv')}
+            >
+              Export CSV
+            </button>
+            <button
+              type="button"
+              className="ghost"
+              disabled={!decodeToken}
+              onClick={() => handleExport('json')}
+            >
+              Export JSON
+            </button>
+          </div>
+        </form>
+
+        {decodeError && <p className="status status--error">{decodeError}</p>}
+
+        {decodeRows.length > 0 && (
+          <div className="decode-table">
+            <div className="decode-table__header">
+              <span>Status</span>
+              <span>DevAddr</span>
+              <span>FCnt</span>
+              <span>FPort</span>
+              <span>Time</span>
+              <span>Payload</span>
+              <span>Decoded JSON</span>
+            </div>
+            {decodeRows.map((row, index) => (
+              <div className="decode-table__row" key={`${row.devaddr ?? 'row'}-${index}`}>
+                <span className={row.status === 'ok' ? 'ok' : 'error'}>
+                  {row.status}
+                </span>
+                <span>{row.devaddr ?? '-'}</span>
+                <span>{row.fcnt ?? '-'}</span>
+                <span>{row.fport ?? '-'}</span>
+                <span>{row.time ?? '-'}</span>
+                <span className="mono">{row.payload_hex ?? ''}</span>
+                <span className="mono">
+                  {row.decoded_json ? JSON.stringify(row.decoded_json) : row.error ?? ''}
+                </span>
+              </div>
+            ))}
           </div>
         )}
       </section>
