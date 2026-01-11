@@ -245,12 +245,49 @@ button.ghost {
   word-break: break-all;
 }
 
+.replay-table {
+  display: grid;
+  gap: 8px;
+}
+
+.replay-table__header,
+.replay-table__row {
+  display: grid;
+  grid-template-columns: 90px 140px 100px 80px 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.replay-table__header {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+}
+
+.replay-table__row {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  font-size: 0.85rem;
+}
+
 @media (max-width: 900px) {
   .decode-table__header {
     display: none;
   }
 
   .decode-table__row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .replay-table__header {
+    display: none;
+  }
+
+  .replay-table__row {
     grid-template-columns: 1fr;
     gap: 4px;
   }

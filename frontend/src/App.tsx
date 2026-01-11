@@ -32,6 +32,14 @@ type DecodeRow = {
   error: string | null
 }
 
+type ReplayRow = {
+  status: string
+  gateway_eui: string | null
+  frequency: number | null
+  size: number | null
+  message: string
+}
+
 type GenerateRequest = {
   gateway_eui: string
   devaddr: string
@@ -64,6 +72,12 @@ const defaultDecodeForm = {
   devaddrs: '',
 }
 
+const defaultReplayForm = {
+  scan_token: '',
+  udp_host: '127.0.0.1',
+  udp_port: 1700,
+}
+
 function App() {
   const apiBase = import.meta.env.VITE_API_BASE ?? ''
   const [health, setHealth] = useState<HealthStatus | null>(null)
@@ -80,6 +94,11 @@ function App() {
   const [decodeToken, setDecodeToken] = useState('')
   const [decodeError, setDecodeError] = useState('')
   const [decodeLoading, setDecodeLoading] = useState(false)
+  const [replayForm, setReplayForm] = useState(defaultReplayForm)
+  const [replayRows, setReplayRows] = useState<ReplayRow[]>([])
+  const [replayJobId, setReplayJobId] = useState('')
+  const [replayError, setReplayError] = useState('')
+  const [replayLoading, setReplayLoading] = useState(false)
 
   const formattedSize = useMemo(() => {
     if (!generated) return ''
@@ -273,6 +292,43 @@ function App() {
     }
   }
 
+  const handleReplaySubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setReplayLoading(true)
+    setReplayError('')
+    setReplayRows([])
+    setReplayJobId('')
+
+    try {
+      const response = await fetch(`${apiBase}/api/v1/replay`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+        },
+        body: JSON.stringify({
+          scan_token: replayForm.scan_token || null,
+          udp_host: replayForm.udp_host,
+          udp_port: Number(replayForm.udp_port),
+        }),
+      })
+
+      if (!response.ok) {
+        const message = await response.text()
+        throw new Error(message || `Replay failed: ${response.status}`)
+      }
+
+      const data = (await response.json()) as { id: string; rows: ReplayRow[] }
+      setReplayJobId(data.id)
+      setReplayRows(data.rows)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Replay failed'
+      setReplayError(message)
+    } finally {
+      setReplayLoading(false)
+    }
+  }
+
   return (
     <div className="app">
       <header className="app__header">
@@ -452,6 +508,89 @@ function App() {
                 Download JSONL
               </button>
             </div>
+          </div>
+        )}
+      </section>
+
+      <section className="app__card app__card--form">
+        <div className="card__header">
+          <div>
+            <h2>Replay</h2>
+            <p>Send Semtech UDP PUSH_DATA packets to a target host and port.</p>
+          </div>
+          <div className="card__pill">UDP</div>
+        </div>
+
+        <form className="form" onSubmit={handleReplaySubmit}>
+          <div className="form__grid">
+            <label>
+              Scan token
+              <input
+                value={replayForm.scan_token}
+                onChange={(event) =>
+                  setReplayForm((prev) => ({ ...prev, scan_token: event.target.value }))
+                }
+                placeholder="Paste scan token"
+                required
+              />
+            </label>
+            <label>
+              UDP host
+              <input
+                value={replayForm.udp_host}
+                onChange={(event) =>
+                  setReplayForm((prev) => ({ ...prev, udp_host: event.target.value }))
+                }
+                required
+              />
+            </label>
+            <label>
+              UDP port
+              <input
+                type="number"
+                min={1}
+                max={65535}
+                value={replayForm.udp_port}
+                onChange={(event) =>
+                  setReplayForm((prev) => ({ ...prev, udp_port: Number(event.target.value) }))
+                }
+                required
+              />
+            </label>
+          </div>
+
+          <div className="form__actions">
+            <button type="submit" disabled={replayLoading}>
+              {replayLoading ? 'Replaying…' : 'Start replay'}
+            </button>
+          </div>
+        </form>
+
+        {replayError && <p className="status status--error">{replayError}</p>}
+
+        {replayRows.length > 0 && (
+          <div className="replay-table">
+            <div className="replay-table__header">
+              <span>Status</span>
+              <span>Gateway EUI</span>
+              <span>Frequency</span>
+              <span>Size</span>
+              <span>Message</span>
+            </div>
+            {replayRows.map((row, index) => (
+              <div className="replay-table__row" key={`${row.gateway_eui ?? 'row'}-${index}`}>
+                <span className={row.status === 'sent' ? 'ok' : 'error'}>
+                  {row.status}
+                </span>
+                <span>{row.gateway_eui ?? '-'}</span>
+                <span>{row.frequency ?? '-'}</span>
+                <span>{row.size ?? '-'}</span>
+                <span>{row.message}</span>
+              </div>
+            ))}
+            {replayJobId && (
+              <p className="result__meta">Replay job: {replayJobId}</p>
+            )}
           </div>
         )}
       </section>
