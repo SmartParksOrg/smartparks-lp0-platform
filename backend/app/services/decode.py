@@ -34,10 +34,24 @@ class DecodeResult:
 
 
 class DecodeCache:
-    def __init__(self, ttl_minutes: int = 30) -> None:
+    def __init__(self, ttl_minutes: int = 30, max_items: int = 100) -> None:
         self._ttl = timedelta(minutes=ttl_minutes)
+        self._max_items = max(1, max_items)
         self._items: dict[str, DecodeResult] = {}
         self._lock = Lock()
+
+    def _prune_expired(self, now: datetime) -> None:
+        expired = [token for token, result in self._items.items() if result.expires_at <= now]
+        for token in expired:
+            self._items.pop(token, None)
+
+    def _enforce_max(self) -> None:
+        if len(self._items) <= self._max_items:
+            return
+        overflow = len(self._items) - self._max_items
+        oldest = sorted(self._items.items(), key=lambda item: item[1].created_at)[:overflow]
+        for token, _ in oldest:
+            self._items.pop(token, None)
 
     def create(self, rows: list[DecodeRow]) -> DecodeResult:
         now = datetime.utcnow()
@@ -48,7 +62,9 @@ class DecodeCache:
             expires_at=now + self._ttl,
         )
         with self._lock:
+            self._prune_expired(now)
             self._items[result.token] = result
+            self._enforce_max()
         return result
 
     def get(self, token: str) -> DecodeResult | None:

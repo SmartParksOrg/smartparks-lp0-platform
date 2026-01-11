@@ -12,11 +12,16 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, get_db, require_roles
 from app.api.routes.files import scan_cache
 from app.db.models import DeviceCredential, LogFile, User, UserDecoder
+from app.core.config import get_settings
 from app.services.decode import DecodeCache, DecodeRow, _load_decoder_source, decode_jsonl_lines
 
 router = APIRouter(prefix="/decode", tags=["decode"])
 
-_decode_cache = DecodeCache(ttl_minutes=30)
+_settings = get_settings()
+_decode_cache = DecodeCache(
+    ttl_minutes=_settings.decode_cache_ttl_minutes,
+    max_items=_settings.decode_cache_max_items,
+)
 
 
 class DecodeRequest(BaseModel):

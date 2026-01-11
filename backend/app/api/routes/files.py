@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db, require_roles
 from app.db.models import LogFile, User
+from app.core.config import get_settings
 from app.services.generate_log import GenerateLogParams, generate_jsonl
 from app.services.scan import scan_jsonl_path
 from app.services.scan_context import ScanContextCache
@@ -16,7 +17,11 @@ from app.storage.files import delete_file, save_generated, save_upload
 
 router = APIRouter(prefix="/files", tags=["files"])
 
-scan_cache = ScanContextCache(ttl_minutes=30)
+_settings = get_settings()
+scan_cache = ScanContextCache(
+    ttl_minutes=_settings.scan_cache_ttl_minutes,
+    max_items=_settings.scan_cache_max_items,
+)
 
 
 class LogFileResponse(BaseModel):
