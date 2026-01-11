@@ -493,6 +493,38 @@ button.ghost {
   color: #475569;
 }
 
+.info-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.info-card {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  display: grid;
+  gap: 10px;
+}
+
+.info-card h3 {
+  margin: 0;
+}
+
+.info-copy {
+  color: #475569;
+  margin: 0;
+}
+
+.info-list {
+  margin: 0;
+  padding-left: 18px;
+  color: #475569;
+  display: grid;
+  gap: 6px;
+}
+
 @media (max-width: 900px) {
   .decode-table__header {
     display: none;
