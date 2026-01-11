@@ -364,6 +364,14 @@ button.ghost {
   font-size: 0.8rem;
 }
 
+.placeholder {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px dashed #cbd5e1;
+  color: #475569;
+}
+
 @media (max-width: 900px) {
   .decode-table__header {
     display: none;
