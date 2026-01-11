@@ -64,6 +64,12 @@ function App() {
           >
             About
           </NavLink>
+          <NavLink
+            to="/admin"
+            className={({ isActive }) => (isActive ? 'active' : '')}
+          >
+            Admin
+          </NavLink>
         </nav>
 
         <main className="app__content">

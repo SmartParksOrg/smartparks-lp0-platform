@@ -349,6 +349,46 @@ button.ghost {
   font-size: 0.85rem;
 }
 
+.admin-table {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-table__header,
+.admin-table__row {
+  display: grid;
+  grid-template-columns: 1.6fr 110px 80px 1fr 160px;
+  gap: 12px;
+  align-items: center;
+}
+
+.admin-table__header {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+}
+
+.admin-table__row {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  font-size: 0.85rem;
+}
+
+.admin-table__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-table input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+}
+
 .decoder-table {
   display: grid;
   gap: 8px;
@@ -549,6 +589,15 @@ button.ghost {
   }
 
   .device-table__row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .admin-table__header {
+    display: none;
+  }
+
+  .admin-table__row {
     grid-template-columns: 1fr;
     gap: 4px;
   }
