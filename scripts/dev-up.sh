@@ -5,11 +5,11 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BACKEND_DIR="$ROOT_DIR/backend"
 FRONTEND_DIR="$ROOT_DIR/frontend"
 
-ADMIN_EMAIL="tim@smartparks.org"
-ADMIN_PASSWORD="Sp0rk-Quartz-9V7F-Lm2D"
+ADMIN_EMAIL="${ADMIN_EMAIL:-${SMARTPARKS_ADMIN_EMAIL:-admin@example.com}}"
+ADMIN_PASSWORD="${ADMIN_PASSWORD:-${SMARTPARKS_ADMIN_PASSWORD:-}}"
 
 if [[ -z "${ADMIN_PASSWORD// /}" ]]; then
-  echo "Error: ADMIN_PASSWORD not set in script." >&2
+  echo "Error: ADMIN_PASSWORD is required. Set ADMIN_PASSWORD or SMARTPARKS_ADMIN_PASSWORD." >&2
   exit 1
 fi
 
@@ -47,6 +47,5 @@ trap cleanup INT TERM EXIT
 echo "Backend: http://localhost:8000"
 echo "Frontend: check Vite output (usually http://localhost:5173)"
 echo "Admin email: $ADMIN_EMAIL"
-echo "Admin password: $ADMIN_PASSWORD"
 
 wait "$BACKEND_PID" "$FRONTEND_PID"
