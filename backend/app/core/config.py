@@ -6,8 +6,8 @@ class Settings(BaseSettings):
     app_env: str = "local"
     api_prefix: str = "/api/v1"
     cors_allow_origins: str = ""
-    database_url: str = "sqlite:////data/app.db"
     data_dir: str = "/data"
+    database_url: str | None = None
     upload_max_bytes: int = 25 * 1024 * 1024
     scan_cache_ttl_minutes: int = 30
     scan_cache_max_items: int = 200
@@ -21,6 +21,11 @@ class Settings(BaseSettings):
 
     class Config:
         env_prefix = "SMARTPARKS_"
+
+    def model_post_init(self, __context) -> None:
+        if not self.database_url:
+            base_dir = self.data_dir.rstrip("/")
+            self.database_url = f"sqlite:///{base_dir}/app.db"
 
 
 @lru_cache(maxsize=1)

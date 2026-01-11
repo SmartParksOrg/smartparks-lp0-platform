@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -31,6 +33,7 @@ def create_app() -> FastAPI:
     def _on_startup() -> None:
         db = SessionLocal()
         try:
+            Path(settings.data_dir).mkdir(parents=True, exist_ok=True)
             Base.metadata.create_all(bind=db.get_bind())
             bootstrap_admin(db)
         finally:
