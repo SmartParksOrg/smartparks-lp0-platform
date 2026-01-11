@@ -16,8 +16,7 @@ Greenfield rebuild of the LP0 Replay tool as a production-ready platform:
 5. Install repo git hooks to block committing secrets: `./scripts/install-git-hooks.sh`.
 
 ## Repository status
-This repository is intentionally bootstrapped with documentation and placeholders only.
-Application code will be created by Codex following the build plan.
+Active development toward full V1 parity. See `docs/acceptance.md` for the checklist.
 
 ## WHEREWASI?
 Last updated: 2026-01-11
@@ -26,17 +25,20 @@ Completed:
 - Backend: FastAPI skeleton + config + DB models + Alembic scaffolding.
 - Auth/RBAC: JWT login/me, admin bootstrap, role guards.
 - Files API: upload/list/preview/download/delete/scan with scan tokens + TTL.
-- Generator: JSONL generation endpoint + Start page UI.
+- Generator: JSONL generation endpoint + Start page UI + presets.
 - Devices API + UI.
 - Decoders API + UI (built-in + uploaded, view source, delete uploaded only).
-- Decode API + UI with CSV/JSON export + decode test fixture.
+- Decode API + UI with CSV/JSON export + packet details modal.
 - Replay API + UI (Semtech UDP PUSH_DATA).
-- Frontend: routed layout with Start/Devices/Files/Decoders/Integrations/About.
-- Files UI: upload/list/preview/scan/download/delete + scan token shortcut.
+- Frontend: routed layout with Start/Devices/Files/Decoders/Integrations/About/Admin.
+- Files UI: upload/list/preview/scan/download/delete + scan token deep links.
+- Admin: user management UI + `/admin/users` API.
+- Admin: audit log UI + `/admin/audit` API.
+- Caching: scan/decode caches bounded and configurable.
+- Integrations/About: expanded content.
 
 Next up:
-- Add decode/replay shortcuts from Files to Start (deep links/anchors).
-- Finish remaining parity items in `CODEX_BUILD_PLAN.md` (Integrations/About content, admin UX, caching strategies, etc.).
+- Finish remaining parity items in `CODEX_BUILD_PLAN.md` (deployment polish, generator parity validation, admin UX refinements).
 
 ## Key docs
 - `CODEX_BUILD_PLAN.md` — authoritative build plan (V1 feature parity)
