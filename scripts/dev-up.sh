@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BACKEND_DIR="$ROOT_DIR/backend"
 FRONTEND_DIR="$ROOT_DIR/frontend"
+LOCAL_DATA_DIR="$ROOT_DIR/data"
 
 if [[ -f "$ROOT_DIR/.env" ]]; then
   set -a
@@ -14,6 +15,9 @@ fi
 
 ADMIN_EMAIL="${ADMIN_EMAIL:-${SMARTPARKS_ADMIN_EMAIL:-admin@example.com}}"
 ADMIN_PASSWORD="${ADMIN_PASSWORD:-${SMARTPARKS_ADMIN_PASSWORD:-}}"
+SMARTPARKS_DATA_DIR="${SMARTPARKS_DATA_DIR:-$LOCAL_DATA_DIR}"
+
+mkdir -p "$SMARTPARKS_DATA_DIR"
 
 if [[ -z "${ADMIN_PASSWORD// /}" ]]; then
   echo "Error: ADMIN_PASSWORD is required. Set ADMIN_PASSWORD or SMARTPARKS_ADMIN_PASSWORD." >&2
@@ -38,6 +42,7 @@ fi
 cd "$BACKEND_DIR"
 SMARTPARKS_ADMIN_EMAIL="$ADMIN_EMAIL" \
 SMARTPARKS_ADMIN_PASSWORD="$ADMIN_PASSWORD" \
+SMARTPARKS_DATA_DIR="$SMARTPARKS_DATA_DIR" \
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 &
 BACKEND_PID=$!
 
