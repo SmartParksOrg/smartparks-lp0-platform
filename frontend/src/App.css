@@ -117,6 +117,11 @@ input:focus {
   border-color: transparent;
 }
 
+input[type='file'] {
+  padding: 8px;
+  background: transparent;
+}
+
 select {
   padding: 10px 12px;
   border-radius: 12px;
@@ -301,6 +306,64 @@ button.ghost {
   font-size: 0.85rem;
 }
 
+.decoder-table {
+  display: grid;
+  gap: 8px;
+}
+
+.decoder-table__header,
+.decoder-table__row {
+  display: grid;
+  grid-template-columns: 1.2fr 90px 90px 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.decoder-table__header {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+}
+
+.decoder-table__row {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  font-size: 0.85rem;
+}
+
+.decoder-table__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.decoder-source {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 16px;
+  display: grid;
+  gap: 8px;
+}
+
+.decoder-source__header {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.decoder-source pre {
+  margin: 0;
+  padding: 16px;
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 12px;
+  overflow-x: auto;
+  font-size: 0.8rem;
+}
+
 @media (max-width: 900px) {
   .decode-table__header {
     display: none;
@@ -325,6 +388,15 @@ button.ghost {
   }
 
   .device-table__row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .decoder-table__header {
+    display: none;
+  }
+
+  .decoder-table__row {
     grid-template-columns: 1fr;
     gap: 4px;
   }
