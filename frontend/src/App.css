@@ -389,6 +389,34 @@ button.ghost {
   padding: 0;
 }
 
+.audit-table {
+  display: grid;
+  gap: 8px;
+}
+
+.audit-table__header,
+.audit-table__row {
+  display: grid;
+  grid-template-columns: 170px 160px 1fr 2fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.audit-table__header {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+}
+
+.audit-table__row {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  font-size: 0.85rem;
+}
+
 .decoder-table {
   display: grid;
   gap: 8px;
@@ -598,6 +626,15 @@ button.ghost {
   }
 
   .admin-table__row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .audit-table__header {
+    display: none;
+  }
+
+  .audit-table__row {
     grid-template-columns: 1fr;
     gap: 4px;
   }

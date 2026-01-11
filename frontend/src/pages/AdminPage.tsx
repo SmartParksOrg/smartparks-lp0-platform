@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useAuth } from '../context/AuthContext'
-import type { AdminUser } from './types'
+import type { AdminUser, AuditEvent } from './types'
 
 type UserFormState = {
   email: string
@@ -30,6 +30,10 @@ function AdminPage() {
   const [error, setError] = useState('')
   const [formState, setFormState] = useState<UserFormState>(defaultForm)
   const [edits, setEdits] = useState<Record<string, UserEditState>>({})
+  const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([])
+  const [auditLoading, setAuditLoading] = useState(false)
+  const [auditError, setAuditError] = useState('')
+  const [auditAction, setAuditAction] = useState('')
 
   const loadUsers = useCallback(async () => {
     if (!authToken) {
@@ -69,6 +73,40 @@ function AdminPage() {
   useEffect(() => {
     loadUsers().catch(() => undefined)
   }, [loadUsers])
+
+  const loadAudit = useCallback(async () => {
+    if (!authToken) {
+      setAuditEvents([])
+      return
+    }
+    setAuditLoading(true)
+    setAuditError('')
+    try {
+      const params = new URLSearchParams()
+      if (auditAction.trim()) {
+        params.set('action', auditAction.trim())
+      }
+      const suffix = params.toString() ? `?${params.toString()}` : ''
+      const response = await fetch(`${apiBase}/api/v1/admin/audit${suffix}`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      })
+      if (!response.ok) {
+        const message = await response.text()
+        throw new Error(message || `Audit list failed: ${response.status}`)
+      }
+      const data = (await response.json()) as AuditEvent[]
+      setAuditEvents(data)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Audit list failed'
+      setAuditError(message)
+    } finally {
+      setAuditLoading(false)
+    }
+  }, [apiBase, authToken, auditAction])
+
+  useEffect(() => {
+    loadAudit().catch(() => undefined)
+  }, [loadAudit])
 
   const handleCreate = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -303,6 +341,57 @@ function AdminPage() {
             )
           })}
           {!loading && rows.length === 0 && <p className="status">No users found.</p>}
+        </div>
+      </section>
+
+      <section className="app__card app__card--form">
+        <div className="card__header">
+          <div>
+            <h2>Audit log</h2>
+            <p>Recent admin actions for traceability and reviews.</p>
+          </div>
+          <div className="card__pill">Admin</div>
+        </div>
+
+        <div className="form__actions">
+          <label>
+            Action filter
+            <input
+              value={auditAction}
+              onChange={(event) => setAuditAction(event.target.value)}
+              placeholder="admin.user.update"
+            />
+          </label>
+          <button type="button" className="ghost" onClick={loadAudit} disabled={auditLoading}>
+            Refresh audit
+          </button>
+        </div>
+
+        {auditError && <p className="status status--error">{auditError}</p>}
+
+        <div className="audit-table">
+          <div className="audit-table__header">
+            <span>Time</span>
+            <span>User</span>
+            <span>Action</span>
+            <span>Details</span>
+          </div>
+          {auditLoading && auditEvents.length === 0 && <p className="status">Loading...</p>}
+          {auditEvents.map((eventItem) => (
+            <div className="audit-table__row" key={eventItem.id}>
+              <span>{new Date(eventItem.created_at).toLocaleString()}</span>
+              <span className="mono">{eventItem.user_email ?? eventItem.user_id ?? '-'}</span>
+              <span>{eventItem.action}</span>
+              <span className="mono">
+                {eventItem.payload_json
+                  ? JSON.stringify(eventItem.payload_json)
+                  : eventItem.detail ?? '-'}
+              </span>
+            </div>
+          ))}
+          {!auditLoading && auditEvents.length === 0 && (
+            <p className="status">No audit events yet.</p>
+          )}
         </div>
       </section>
     </div>

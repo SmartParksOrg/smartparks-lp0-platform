@@ -1,12 +1,15 @@
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from datetime import datetime
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db, require_roles
 from app.core.security import hash_password
-from app.db.models import User
+from app.db.models import AuditEvent, User
+from app.services.audit import record_audit_event
 
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_roles(["admin"]))])
 
@@ -18,6 +21,16 @@ class UserResponse(BaseModel):
     is_active: bool
     created_at: str
     updated_at: str
+
+
+class AuditEventResponse(BaseModel):
+    id: str
+    user_id: str | None
+    user_email: str | None
+    action: str
+    detail: str | None
+    payload_json: dict[str, object] | None
+    created_at: str
 
 
 class CreateUserRequest(BaseModel):
@@ -51,7 +64,11 @@ def list_users(db: Session = Depends(get_db)) -> list[UserResponse]:
 
 
 @router.post("/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def create_user(payload: CreateUserRequest, db: Session = Depends(get_db)) -> UserResponse:
+def create_user(
+    payload: CreateUserRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> UserResponse:
     email = payload.email.lower().strip()
     if "@" not in email or email.startswith("@") or email.endswith("@"):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid email")
@@ -66,6 +83,12 @@ def create_user(payload: CreateUserRequest, db: Session = Depends(get_db)) -> Us
         is_active=payload.is_active,
     )
     db.add(user)
+    record_audit_event(
+        db,
+        user=current_user,
+        action="admin.user.create",
+        payload={"email": email, "role": payload.role, "is_active": payload.is_active},
+    )
     db.commit()
     db.refresh(user)
     return _user_response(user)
@@ -95,6 +118,17 @@ def update_user(
     if payload.password:
         user.password_hash = hash_password(payload.password)
 
+    record_audit_event(
+        db,
+        user=current_user,
+        action="admin.user.update",
+        payload={
+            "user_id": user.id,
+            "role": payload.role,
+            "is_active": payload.is_active,
+            "password_reset": bool(payload.password),
+        },
+    )
     db.commit()
     db.refresh(user)
     return _user_response(user)
@@ -112,5 +146,45 @@ def delete_user(
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     db.delete(user)
+    record_audit_event(
+        db,
+        user=current_user,
+        action="admin.user.delete",
+        payload={"user_id": user.id, "email": user.email},
+    )
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get("/audit", response_model=list[AuditEventResponse])
+def list_audit(
+    action: str | None = None,
+    user_id: str | None = None,
+    since: datetime | None = Query(default=None),
+    until: datetime | None = Query(default=None),
+    limit: int = Query(default=200, ge=1, le=1000),
+    db: Session = Depends(get_db),
+) -> list[AuditEventResponse]:
+    query = db.query(AuditEvent, User).outerjoin(User, AuditEvent.user_id == User.id)
+    if action:
+        query = query.filter(AuditEvent.action == action)
+    if user_id:
+        query = query.filter(AuditEvent.user_id == user_id)
+    if since:
+        query = query.filter(AuditEvent.created_at >= since)
+    if until:
+        query = query.filter(AuditEvent.created_at <= until)
+
+    events = query.order_by(AuditEvent.created_at.desc()).limit(limit).all()
+    return [
+        AuditEventResponse(
+            id=event.id,
+            user_id=event.user_id,
+            user_email=user.email if user else None,
+            action=event.action,
+            detail=event.detail,
+            payload_json=event.payload_json,
+            created_at=event.created_at.isoformat(),
+        )
+        for event, user in events
+    ]

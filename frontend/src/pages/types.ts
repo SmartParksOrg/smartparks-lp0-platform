@@ -62,3 +62,13 @@ export type AdminUser = {
   created_at: string
   updated_at: string
 }
+
+export type AuditEvent = {
+  id: string
+  user_id: string | null
+  user_email: string | null
+  action: string
+  detail: string | null
+  payload_json: Record<string, unknown> | null
+  created_at: string
+}
