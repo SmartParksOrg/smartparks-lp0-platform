@@ -13,3 +13,8 @@
 - `SMARTPARKS_APP_ENV` (default: `local`)
 - `SMARTPARKS_API_PREFIX` (default: `/api/v1`)
 - `SMARTPARKS_CORS_ALLOW_ORIGINS` (comma-separated origins; empty uses local defaults)
+- `SMARTPARKS_DATABASE_URL` (default: `sqlite:////data/app.db`)
+
+## Migrations
+- Initialize a migration: `alembic revision --autogenerate -m "init"`
+- Apply migrations: `alembic upgrade head`

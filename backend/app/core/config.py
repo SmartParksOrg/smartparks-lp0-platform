@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     app_env: str = "local"
     api_prefix: str = "/api/v1"
     cors_allow_origins: str = ""
+    database_url: str = "sqlite:////data/app.db"
 
     class Config:
         env_prefix = "SMARTPARKS_"
