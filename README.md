@@ -12,6 +12,7 @@ Greenfield rebuild of the LP0 Replay tool as a production-ready platform:
 1. Read `CODEX_BUILD_PLAN.md`
 2. Follow `docs/CODEX_BOOTSTRAP_WITH_SOURCES.md` to import allowed reference assets (V1 decoders, generator reference, optional look references).
 3. Use ChatGPT Codex (VS Code) to execute tasks phase-by-phase.
+4. For local dev, run `./scripts/dev-up.sh`.
 
 ## Repository status
 This repository is intentionally bootstrapped with documentation and placeholders only.
