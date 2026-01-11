@@ -14,6 +14,11 @@
 - `SMARTPARKS_API_PREFIX` (default: `/api/v1`)
 - `SMARTPARKS_CORS_ALLOW_ORIGINS` (comma-separated origins; empty uses local defaults)
 - `SMARTPARKS_DATABASE_URL` (default: `sqlite:////data/app.db`)
+- `SMARTPARKS_JWT_SECRET` (default: `dev-secret-change-me`)
+- `SMARTPARKS_JWT_ALGORITHM` (default: `HS256`)
+- `SMARTPARKS_ACCESS_TOKEN_EXPIRE_MINUTES` (default: `60`)
+- `SMARTPARKS_ADMIN_EMAIL` (optional bootstrap admin email)
+- `SMARTPARKS_ADMIN_PASSWORD` (optional bootstrap admin password)
 
 ## Migrations
 - Initialize a migration: `alembic revision --autogenerate -m "init"`

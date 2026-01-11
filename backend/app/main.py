@@ -2,6 +2,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import get_settings
+from app.db.bootstrap import bootstrap_admin
+from app.db.base import Base
+from app.db.session import SessionLocal
+from app.api.routes import auth
 
 
 def _build_cors_origins(settings):
@@ -23,6 +27,15 @@ def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(title="Smart Parks LP0 Platform")
 
+    @app.on_event("startup")
+    def _on_startup() -> None:
+        db = SessionLocal()
+        try:
+            Base.metadata.create_all(bind=db.get_bind())
+            bootstrap_admin(db)
+        finally:
+            db.close()
+
     cors_origins = _build_cors_origins(settings)
     if cors_origins:
         app.add_middleware(
@@ -36,6 +49,8 @@ def create_app() -> FastAPI:
     @app.get(f"{settings.api_prefix}/health")
     def health():
         return {"status": "ok"}
+
+    app.include_router(auth.router, prefix=settings.api_prefix)
 
     return app
 
