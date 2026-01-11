@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { AuthContext, type AuthUser } from './context/AuthContext'
 import './App.css'
 import { useEffect, useMemo, useState } from 'react'
@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react'
 function App() {
   const apiBase = import.meta.env.VITE_API_BASE ?? ''
   const navigate = useNavigate()
+  const location = useLocation()
   const [authToken, setAuthToken] = useState('')
   const [user, setUser] = useState<AuthUser | null>(null)
   const [authError, setAuthError] = useState('')
@@ -47,6 +48,12 @@ function App() {
         setAuthError(err.message)
       })
   }, [apiBase, authToken])
+
+  useEffect(() => {
+    if (!authToken && location.pathname !== '/login') {
+      navigate('/login', { replace: true })
+    }
+  }, [authToken, location.pathname, navigate])
 
   const handleLogout = () => {
     setAuthToken('')

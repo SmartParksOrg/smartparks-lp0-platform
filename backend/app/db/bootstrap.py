@@ -11,6 +11,8 @@ def bootstrap_admin(db: Session) -> None:
         return
 
     email = settings.admin_email.lower().strip()
+    if len(settings.admin_password.encode("utf-8")) > 72:
+        raise ValueError("Admin password must be 72 bytes or fewer for bcrypt")
     existing = db.query(User).filter(User.email == email).first()
     if existing:
         return
