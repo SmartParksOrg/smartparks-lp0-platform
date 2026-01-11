@@ -5,6 +5,13 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BACKEND_DIR="$ROOT_DIR/backend"
 FRONTEND_DIR="$ROOT_DIR/frontend"
 
+if [[ -f "$ROOT_DIR/.env" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$ROOT_DIR/.env"
+  set +a
+fi
+
 ADMIN_EMAIL="${ADMIN_EMAIL:-${SMARTPARKS_ADMIN_EMAIL:-admin@example.com}}"
 ADMIN_PASSWORD="${ADMIN_PASSWORD:-${SMARTPARKS_ADMIN_PASSWORD:-}}"
 
