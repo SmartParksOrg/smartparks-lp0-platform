@@ -9,6 +9,7 @@ import DecodersPage from './pages/DecodersPage'
 import DevicesPage from './pages/DevicesPage'
 import FilesPage from './pages/FilesPage'
 import IntegrationsPage from './pages/IntegrationsPage'
+import LoginPage from './pages/LoginPage'
 import NotFoundPage from './pages/NotFoundPage'
 import StartPage from './pages/StartPage'
 
@@ -24,6 +25,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="integrations" element={<IntegrationsPage />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="admin" element={<AdminPage />} />
+          <Route path="login" element={<LoginPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>

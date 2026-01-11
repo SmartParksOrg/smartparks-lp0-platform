@@ -1,11 +1,58 @@
-import { NavLink, Outlet } from 'react-router-dom'
-import { AuthContext } from './context/AuthContext'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { AuthContext, type AuthUser } from './context/AuthContext'
 import './App.css'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 function App() {
+  const apiBase = import.meta.env.VITE_API_BASE ?? ''
+  const navigate = useNavigate()
   const [authToken, setAuthToken] = useState('')
-  const authValue = useMemo(() => ({ token: authToken, setToken: setAuthToken }), [authToken])
+  const [user, setUser] = useState<AuthUser | null>(null)
+  const [authError, setAuthError] = useState('')
+  const authValue = useMemo(
+    () => ({ token: authToken, setToken: setAuthToken, user, setUser }),
+    [authToken, user],
+  )
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem('smartparks.jwt')
+    if (stored) {
+      setAuthToken(stored)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!authToken) {
+      setUser(null)
+      setAuthError('')
+      window.localStorage.removeItem('smartparks.jwt')
+      return
+    }
+    window.localStorage.setItem('smartparks.jwt', authToken)
+    setAuthError('')
+    fetch(`${apiBase}/api/v1/auth/me`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          const message = await response.text()
+          throw new Error(message || `Auth failed: ${response.status}`)
+        }
+        return response.json()
+      })
+      .then((data) => setUser(data))
+      .catch((err: Error) => {
+        setUser(null)
+        setAuthToken('')
+        setAuthError(err.message)
+      })
+  }, [apiBase, authToken])
+
+  const handleLogout = () => {
+    setAuthToken('')
+    setUser(null)
+    navigate('/login')
+  }
 
   return (
     <AuthContext.Provider value={authValue}>
@@ -19,14 +66,30 @@ function App() {
             </p>
           </div>
           <div className="auth">
-            <label htmlFor="token">Auth token (JWT)</label>
-            <input
-              id="token"
-              type="password"
-              placeholder="Paste token for editor/admin actions"
-              value={authToken}
-              onChange={(event) => setAuthToken(event.target.value)}
-            />
+            {user ? (
+              <div className="auth__status">
+                <div>
+                  <p className="auth__label">Signed in</p>
+                  <p className="auth__value">
+                    {user.email} · {user.role}
+                  </p>
+                </div>
+                <button type="button" className="ghost" onClick={handleLogout}>
+                  Log out
+                </button>
+              </div>
+            ) : (
+              <div className="auth__status">
+                <div>
+                  <p className="auth__label">Not signed in</p>
+                  <p className="auth__value">Use your admin credentials to continue.</p>
+                </div>
+                <button type="button" className="ghost" onClick={() => navigate('/login')}>
+                  Log in
+                </button>
+              </div>
+            )}
+            {authError && <p className="status status--error">{authError}</p>}
           </div>
         </header>
 
@@ -64,12 +127,14 @@ function App() {
           >
             About
           </NavLink>
-          <NavLink
-            to="/admin"
-            className={({ isActive }) => (isActive ? 'active' : '')}
-          >
-            Admin
-          </NavLink>
+          {user?.role === 'admin' && (
+            <NavLink
+              to="/admin"
+              className={({ isActive }) => (isActive ? 'active' : '')}
+            >
+              Admin
+            </NavLink>
+          )}
         </nav>
 
         <main className="app__content">

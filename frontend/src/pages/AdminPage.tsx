@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import type { AdminUser, AuditEvent } from './types'
 
@@ -213,6 +214,28 @@ function AdminPage() {
   }
 
   const rows = useMemo(() => users.filter((user) => edits[user.id]), [users, edits])
+
+  if (!authToken) {
+    return (
+      <div className="page">
+        <section className="app__card app__card--form">
+          <div className="card__header">
+            <div>
+              <h2>Admin</h2>
+              <p>Sign in with an admin account to manage users.</p>
+            </div>
+            <div className="card__pill">Auth</div>
+          </div>
+          <div className="placeholder">
+            <p>
+              You are not signed in. <Link to="/login">Log in</Link> to access admin
+              tools.
+            </p>
+          </div>
+        </section>
+      </div>
+    )
+  }
 
   return (
     <div className="page">

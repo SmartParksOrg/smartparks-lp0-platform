@@ -120,6 +120,28 @@
   width: 100%;
 }
 
+.auth__status {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.auth__label {
+  margin: 0;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #64748b;
+}
+
+.auth__value {
+  margin: 4px 0 0;
+  font-weight: 600;
+  color: #0f172a;
+}
+
 .form {
   display: grid;
   gap: 20px;

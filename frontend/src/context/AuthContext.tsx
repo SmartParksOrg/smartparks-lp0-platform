@@ -1,8 +1,17 @@
 import { createContext, useContext } from 'react'
 
+type AuthUser = {
+  id: string
+  email: string
+  role: string
+  is_active: boolean
+}
+
 type AuthContextValue = {
   token: string
   setToken: (token: string) => void
+  user: AuthUser | null
+  setUser: (user: AuthUser | null) => void
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
@@ -16,4 +25,4 @@ const useAuth = () => {
 }
 
 export { AuthContext, useAuth }
-export type { AuthContextValue }
+export type { AuthContextValue, AuthUser }
