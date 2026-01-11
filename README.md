@@ -36,8 +36,10 @@ Completed:
 - Admin: audit log UI + `/admin/audit` API.
 - Caching: scan/decode caches bounded and configurable.
 - Integrations/About: expanded content.
+- UI shell: sidebar navigation + updated palette/typography baseline.
 
 Next up:
+- Continue UI refinement to match AddaxAI-Connect layout and components.
 - Finish remaining parity items in `CODEX_BUILD_PLAN.md` (deployment polish, generator parity validation, admin UX refinements).
 
 ## Key docs
