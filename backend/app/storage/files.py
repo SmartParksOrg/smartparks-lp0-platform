@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import BinaryIO
+from typing import BinaryIO, Iterable
 from uuid import uuid4
 
 from fastapi import HTTPException, UploadFile, status
@@ -51,6 +51,25 @@ def _write_stream(handle: BinaryIO, target: Path, max_bytes: int) -> int:
     return total
 
 
+def _write_lines(lines: Iterable[str], target: Path, max_bytes: int) -> int:
+    total = 0
+    target_tmp = target.with_suffix(".tmp")
+    with target_tmp.open("w", encoding="utf-8") as out:
+        for line in lines:
+            encoded = line.encode("utf-8")
+            total += len(encoded)
+            if total > max_bytes:
+                out.close()
+                target_tmp.unlink(missing_ok=True)
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Generated file exceeds size limit",
+                )
+            out.write(line)
+    os.replace(target_tmp, target)
+    return total
+
+
 def save_upload(upload: UploadFile) -> tuple[str, str, int]:
     settings = get_settings()
     original_name = _safe_original_name(upload.filename)
@@ -61,6 +80,19 @@ def save_upload(upload: UploadFile) -> tuple[str, str, int]:
     storage_path = uploads_dir / storage_name
 
     size_bytes = _write_stream(upload.file, storage_path, settings.upload_max_bytes)
+    return original_name, str(storage_path), size_bytes
+
+
+def save_generated(lines: Iterable[str], filename: str | None = None) -> tuple[str, str, int]:
+    settings = get_settings()
+    original_name = _safe_original_name(filename or f"generated-{uuid4()}.jsonl")
+    _ensure_jsonl(original_name)
+
+    uploads_dir = _ensure_data_dir()
+    storage_name = f"{uuid4()}.jsonl"
+    storage_path = uploads_dir / storage_name
+
+    size_bytes = _write_lines(lines, storage_path, settings.upload_max_bytes)
     return original_name, str(storage_path), size_bytes
 
 
