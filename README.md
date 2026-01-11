@@ -13,6 +13,7 @@ Greenfield rebuild of the LP0 Replay tool as a production-ready platform:
 2. Follow `docs/CODEX_BOOTSTRAP_WITH_SOURCES.md` to import allowed reference assets (V1 decoders, generator reference, optional look references).
 3. Use ChatGPT Codex (VS Code) to execute tasks phase-by-phase.
 4. For local dev, run `./scripts/dev-up.sh`.
+5. Install repo git hooks to block committing secrets: `./scripts/install-git-hooks.sh`.
 
 ## Repository status
 This repository is intentionally bootstrapped with documentation and placeholders only.
@@ -41,3 +42,7 @@ Next up:
 - `CODEX_BUILD_PLAN.md` — authoritative build plan (V1 feature parity)
 - `docs/CODEX_BOOTSTRAP_WITH_SOURCES.md` — how Codex should clone/copy from V1 and AddaxAI-Connect (look-only)
 - `docs/acceptance.md` — parity acceptance checklist (expand over time)
+
+## Secret hygiene
+- Run `./scripts/install-git-hooks.sh` once to enable the pre-commit secret scan.
+- In GitHub, enable Secret Scanning alerts for this repo as a backstop.
