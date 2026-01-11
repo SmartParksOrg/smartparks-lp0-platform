@@ -46,6 +46,7 @@ function StartPage() {
   const [decodeToken, setDecodeToken] = useState('')
   const [decodeError, setDecodeError] = useState('')
   const [decodeLoading, setDecodeLoading] = useState(false)
+  const [selectedRow, setSelectedRow] = useState<DecodeRow | null>(null)
   const [replayForm, setReplayForm] = useState(defaultReplayForm)
   const [replayRows, setReplayRows] = useState<ReplayRow[]>([])
   const [replayJobId, setReplayJobId] = useState('')
@@ -629,7 +630,12 @@ function StartPage() {
               <span>Decoded JSON</span>
             </div>
             {decodeRows.map((row, index) => (
-              <div className="decode-table__row" key={`${row.devaddr ?? 'row'}-${index}`}>
+              <button
+                type="button"
+                className="decode-table__row"
+                key={`${row.devaddr ?? 'row'}-${index}`}
+                onClick={() => setSelectedRow(row)}
+              >
                 <span className={row.status === 'ok' ? 'ok' : 'error'}>
                   {row.status}
                 </span>
@@ -641,8 +647,58 @@ function StartPage() {
                 <span className="mono">
                   {row.decoded_json ? JSON.stringify(row.decoded_json) : row.error ?? ''}
                 </span>
-              </div>
+              </button>
             ))}
+          </div>
+        )}
+        {selectedRow && (
+          <div className="modal">
+            <div className="modal__content">
+              <div className="modal__header">
+                <h3>Packet details</h3>
+                <button
+                  type="button"
+                  className="ghost"
+                  onClick={() => setSelectedRow(null)}
+                >
+                  Close
+                </button>
+              </div>
+              <div className="modal__grid">
+                <div>
+                  <p className="result__meta">Status</p>
+                  <p>{selectedRow.status}</p>
+                </div>
+                <div>
+                  <p className="result__meta">DevAddr</p>
+                  <p className="mono">{selectedRow.devaddr ?? '-'}</p>
+                </div>
+                <div>
+                  <p className="result__meta">FCnt</p>
+                  <p>{selectedRow.fcnt ?? '-'}</p>
+                </div>
+                <div>
+                  <p className="result__meta">FPort</p>
+                  <p>{selectedRow.fport ?? '-'}</p>
+                </div>
+                <div>
+                  <p className="result__meta">Time</p>
+                  <p>{selectedRow.time ?? '-'}</p>
+                </div>
+                <div>
+                  <p className="result__meta">Payload (hex)</p>
+                  <p className="mono">{selectedRow.payload_hex ?? '-'}</p>
+                </div>
+                <div className="modal__span">
+                  <p className="result__meta">Decoded JSON</p>
+                  <pre className="modal__code">
+                    {selectedRow.decoded_json
+                      ? JSON.stringify(selectedRow.decoded_json, null, 2)
+                      : selectedRow.error ?? '—'}
+                  </pre>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </section>
