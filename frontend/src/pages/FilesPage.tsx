@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 import type { LogFileResponse } from './types'
@@ -25,6 +26,8 @@ function FilesPage() {
   const [previewError, setPreviewError] = useState('')
   const [quickScanToken, setQuickScanToken] = useState('')
   const [quickError, setQuickError] = useState('')
+  const buildStartLink = (token: string, section: 'decode' | 'replay') =>
+    `/?scan_token=${encodeURIComponent(token)}#${section}`
 
   const fetchFiles = useCallback(async () => {
     if (!authToken) {
@@ -249,6 +252,12 @@ function FilesPage() {
               <button type="button" className="ghost" onClick={handleQuickCopy}>
                 Copy token
               </button>
+              <Link className="ghost" to={buildStartLink(quickScanToken, 'decode')}>
+                Open Decode
+              </Link>
+              <Link className="ghost" to={buildStartLink(quickScanToken, 'replay')}>
+                Open Replay
+              </Link>
               <span className="files-quick__note">Paste into Decode or Replay forms on Start.</span>
             </div>
             {quickError && <p className="status status--error">{quickError}</p>}
@@ -313,6 +322,14 @@ function FilesPage() {
                 <div className="files-scan">
                   <h3>Scan Results</h3>
                   <p className="result__meta">Token: {scan.token}</p>
+                  <div className="result__actions">
+                    <Link className="ghost" to={buildStartLink(scan.token, 'decode')}>
+                      Open Decode
+                    </Link>
+                    <Link className="ghost" to={buildStartLink(scan.token, 'replay')}>
+                      Open Replay
+                    </Link>
+                  </div>
                   <p className="result__meta">Records: {scan.summary.record_count}</p>
                   <p className="result__meta">
                     Gateways: {scan.summary.gateway_euis.join(', ') || 'None'}

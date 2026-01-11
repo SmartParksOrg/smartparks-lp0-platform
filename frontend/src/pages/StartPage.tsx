@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 import type { DecoderSummary, DecodeRow, GenerateRequest, LogFileResponse, ReplayRow } from './types'
@@ -31,6 +32,7 @@ const defaultReplayForm = {
 function StartPage() {
   const apiBase = import.meta.env.VITE_API_BASE ?? ''
   const { token: authToken } = useAuth()
+  const location = useLocation()
   const [health, setHealth] = useState<{ status: string } | null>(null)
   const [healthError, setHealthError] = useState('')
   const [healthLoading, setHealthLoading] = useState(true)
@@ -84,6 +86,22 @@ function StartPage() {
 
     return () => controller.abort()
   }, [apiBase])
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const scanToken = params.get('scan_token')?.trim()
+    if (scanToken) {
+      setDecodeForm((prev) => ({ ...prev, scan_token: scanToken }))
+      setReplayForm((prev) => ({ ...prev, scan_token: scanToken }))
+    }
+    const hash = location.hash.replace('#', '')
+    if (hash) {
+      const target = document.getElementById(hash)
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }
+  }, [location.hash, location.search])
 
   useEffect(() => {
     if (!authToken) {
@@ -297,7 +315,7 @@ function StartPage() {
         </div>
       </section>
 
-      <section className="app__card app__card--form">
+      <section className="app__card app__card--form" id="replay">
         <div className="card__header">
           <div>
             <h2>Generate Test Logfile</h2>
@@ -443,7 +461,7 @@ function StartPage() {
         )}
       </section>
 
-      <section className="app__card app__card--form">
+      <section className="app__card app__card--form" id="decode">
         <div className="card__header">
           <div>
             <h2>Replay</h2>
