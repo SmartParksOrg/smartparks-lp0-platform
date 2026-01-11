@@ -4,6 +4,68 @@ import { useAuth } from '../context/AuthContext'
 
 import type { DecoderSummary, DecodeRow, GenerateRequest, LogFileResponse, ReplayRow } from './types'
 
+type GeneratorPreset = {
+  id: string
+  name: string
+  description: string
+  updates: Partial<GenerateRequest>
+}
+
+const generatorPresets: GeneratorPreset[] = [
+  {
+    id: 'heartbeat',
+    name: 'Heartbeat',
+    description: 'Short payload every minute for quick smoke tests.',
+    updates: {
+      frames: 60,
+      interval_seconds: 60,
+      payload_hex: '0101',
+      datarate: 'SF7BW125',
+      coding_rate: '4/5',
+      frequency_mhz: 868.1,
+    },
+  },
+  {
+    id: 'gps',
+    name: 'GPS Ping',
+    description: 'Longer payload at a slower cadence for tracking.',
+    updates: {
+      frames: 30,
+      interval_seconds: 120,
+      payload_hex: '88E1F2C4010AF3B2',
+      datarate: 'SF9BW125',
+      coding_rate: '4/5',
+      frequency_mhz: 868.5,
+    },
+  },
+  {
+    id: 'sensor',
+    name: 'Sensor Burst',
+    description: 'Dense bursts to test decode throughput.',
+    updates: {
+      frames: 200,
+      interval_seconds: 5,
+      payload_hex: '0A0B0C0D0E0F',
+      datarate: 'SF7BW125',
+      coding_rate: '4/5',
+      frequency_mhz: 868.3,
+    },
+  },
+  {
+    id: 'empty',
+    name: 'Empty Payload',
+    description: 'No FRMPayload data, useful for edge cases.',
+    updates: {
+      frames: 20,
+      interval_seconds: 30,
+      payload_hex: null,
+      datarate: 'SF8BW125',
+      coding_rate: '4/5',
+      frequency_mhz: 868.1,
+    },
+  },
+]
+
 const defaultForm: GenerateRequest = {
   gateway_eui: '0102030405060708',
   devaddr: '26011BDA',
@@ -131,6 +193,13 @@ function StartPage() {
     value: GenerateRequest[K],
   ) => {
     setFormState((prev) => ({ ...prev, [key]: value }))
+  }
+
+  const applyPreset = (preset: GeneratorPreset) => {
+    setFormState((prev) => ({
+      ...prev,
+      ...preset.updates,
+    }))
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -316,13 +385,35 @@ function StartPage() {
         </div>
       </section>
 
-      <section className="app__card app__card--form" id="replay">
+      <section className="app__card app__card--form">
         <div className="card__header">
           <div>
             <h2>Generate Test Logfile</h2>
             <p>Defaults match EU868 settings used in V1.</p>
           </div>
           <div className="card__pill">JSONL</div>
+        </div>
+
+        <div className="preset-bar">
+          <div>
+            <p className="result__meta">Presets</p>
+            <p className="preset-bar__hint">
+              Quick-fill common payload patterns for testing.
+            </p>
+          </div>
+          <div className="preset-bar__actions">
+            {generatorPresets.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                className="ghost"
+                onClick={() => applyPreset(preset)}
+                title={preset.description}
+              >
+                {preset.name}
+              </button>
+            ))}
+          </div>
         </div>
 
         <form className="form" onSubmit={handleSubmit}>
@@ -462,7 +553,7 @@ function StartPage() {
         )}
       </section>
 
-      <section className="app__card app__card--form" id="decode">
+      <section className="app__card app__card--form" id="replay">
         <div className="card__header">
           <div>
             <h2>Replay</h2>
@@ -543,7 +634,7 @@ function StartPage() {
         )}
       </section>
 
-      <section className="app__card app__card--form">
+      <section className="app__card app__card--form" id="decode">
         <div className="card__header">
           <div>
             <h2>Decrypt &amp; Decode</h2>
