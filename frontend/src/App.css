@@ -1,0 +1,46 @@
+.app {
+  margin: 0 auto;
+  padding: 48px 20px 72px;
+  max-width: 720px;
+}
+
+.app__header {
+  margin-bottom: 32px;
+}
+
+.app__eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  margin: 0 0 12px;
+}
+
+.app__subtitle {
+  color: #475569;
+  margin-top: 12px;
+  max-width: 32rem;
+}
+
+.app__card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  border: 1px solid #e2e8f0;
+}
+
+.status {
+  margin-top: 12px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.status--ok {
+  color: #15803d;
+}
+
+.status--error {
+  color: #b91c1c;
+}
