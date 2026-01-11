@@ -5,7 +5,7 @@ from app.core.config import get_settings
 from app.db.bootstrap import bootstrap_admin
 from app.db.base import Base
 from app.db.session import SessionLocal
-from app.api.routes import auth, decode, decoders, devices, files, scan
+from app.api.routes import auth, decode, decoders, devices, files, replay, scan
 
 
 def _build_cors_origins(settings):
@@ -55,6 +55,7 @@ def create_app() -> FastAPI:
     app.include_router(decoders.router, prefix=settings.api_prefix)
     app.include_router(devices.router, prefix=settings.api_prefix)
     app.include_router(files.router, prefix=settings.api_prefix)
+    app.include_router(replay.router, prefix=settings.api_prefix)
     app.include_router(scan.router, prefix=settings.api_prefix)
 
     return app
