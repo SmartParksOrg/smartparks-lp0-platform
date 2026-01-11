@@ -273,6 +273,34 @@ button.ghost {
   font-size: 0.85rem;
 }
 
+.device-table {
+  display: grid;
+  gap: 8px;
+}
+
+.device-table__header,
+.device-table__row {
+  display: grid;
+  grid-template-columns: 110px 150px 1fr 1fr 90px;
+  gap: 12px;
+  align-items: center;
+}
+
+.device-table__header {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+}
+
+.device-table__row {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  font-size: 0.85rem;
+}
+
 @media (max-width: 900px) {
   .decode-table__header {
     display: none;
@@ -288,6 +316,15 @@ button.ghost {
   }
 
   .replay-table__row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .device-table__header {
+    display: none;
+  }
+
+  .device-table__row {
     grid-template-columns: 1fr;
     gap: 4px;
   }
