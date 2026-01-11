@@ -23,6 +23,8 @@ function FilesPage() {
   const [scanResults, setScanResults] = useState<Record<string, ScanResponse>>({})
   const [previewContent, setPreviewContent] = useState<Record<string, string>>({})
   const [previewError, setPreviewError] = useState('')
+  const [quickScanToken, setQuickScanToken] = useState('')
+  const [quickError, setQuickError] = useState('')
 
   const fetchFiles = useCallback(async () => {
     if (!authToken) {
@@ -183,11 +185,23 @@ function FilesPage() {
       }
       const data = (await response.json()) as ScanResponse
       setScanResults((prev) => ({ ...prev, [fileId]: data }))
+      setQuickScanToken(data.token)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Scan failed'
       setFileError(message)
     } finally {
       setFileLoading(false)
+    }
+  }
+
+  const handleQuickCopy = async () => {
+    if (!quickScanToken) return
+    try {
+      await navigator.clipboard.writeText(quickScanToken)
+      setQuickError('')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Clipboard failed'
+      setQuickError(message)
     }
   }
 
@@ -225,6 +239,21 @@ function FilesPage() {
 
         {fileError && <p className="status status--error">{fileError}</p>}
         {previewError && <p className="status status--error">{previewError}</p>}
+
+        {quickScanToken && (
+          <div className="files-quick">
+            <p className="result__meta">
+              Latest scan token: <span className="mono">{quickScanToken}</span>
+            </p>
+            <div className="files-quick__actions">
+              <button type="button" className="ghost" onClick={handleQuickCopy}>
+                Copy token
+              </button>
+              <span className="files-quick__note">Paste into Decode or Replay forms on Start.</span>
+            </div>
+            {quickError && <p className="status status--error">{quickError}</p>}
+          </div>
+        )}
 
         <div className="files-table">
           <div className="files-table__header">
